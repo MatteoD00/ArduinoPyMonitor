@@ -2,7 +2,7 @@
 #from DB import *
 import sys
 import threading
-import datetime
+from datetime import datetime
 import requests
 import serial
 import time
@@ -27,8 +27,13 @@ def send2DB(sensors, values, ts):
 
 # Write info on TXT file
 def sendfile(sensname, valOut, ts, fileout):
-    outtxt = f"Time: {ts}            {sensname[0]}: {valOut[0]}            {sensname[1]}: {valOut[1]}"
-    fileout.Write(outtxt)
+    try:
+        outtxt = f"Time: {ts}            {sensname[0]}: {valOut[0]}            {sensname[1]}: {valOut[1]}\n"
+        fileout.write(outtxt)
+    except:
+        return False
+    return True    
+    
 
 # reading and formatting lists of data
 def readData(arduino,testmode):
@@ -39,16 +44,16 @@ def readData(arduino,testmode):
         print(stringout)
     while "End communication" not in stringout:
         try:
-            if "Temperature" in stringout:
+            if "Temp" in stringout:
                 temp = stringout.split()
                 valsens.append(float(temp[2]))
                 sensname.append("Temperature (C)")
-            elif "Humidity" in stringout:
+            elif "Hum" in stringout:
                 hum = stringout.split()
                 valsens.append(float(hum[2]))
                 sensname.append("Humidity (%)")
         except:
-            print("Something went wrong while reading data from Arduino, impossible to upload to Influx")
+            print("Something went wrong while reading data from Arduino")
         stringout = arduino.readline().decode()
         if testmode:
             print(stringout)
@@ -59,9 +64,12 @@ def mainLoop(arduino, testmode, fileout):
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
         sensname, valOut = readData(arduino,testmode)
-        ts = time.time()
+        ts = datetime.fromtimestamp(time.time())
+        ts = ts.time()
         #successDB = send2DB(valOut, ts)
-        succesFile = sendfile(sensname,valOut,ts,fileout)
+        successWrite = sendfile(sensname,valOut,ts,fileout)
+        if not successWrite:
+            print("! Problem while writing txt file !")
         if testmode:
             print(ts,valOut,sep="  ;   ")
             sizeval = len(valOut)
@@ -86,3 +94,4 @@ if __name__ == "__main__":
         except:
             print("!! Something went wrong, quit python script !!")
             shutdown = True
+    fileout.close()
