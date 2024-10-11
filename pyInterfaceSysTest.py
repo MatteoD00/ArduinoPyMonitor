@@ -28,6 +28,7 @@ def send2DB(sensors, values, ts):
 # Write info on TXT file
 def sendfile(sensname, valOut, ts, fileout):
     outtxt = f"Time: {ts}            {sensname[0]}: {valOut[0]}            {sensname[1]}: {valOut[1]}"
+    fileout.Write(outtxt)
 
 # reading and formatting lists of data
 def readData(arduino,testmode):
@@ -62,9 +63,9 @@ def mainLoop(arduino, testmode, fileout):
         #successDB = send2DB(valOut, ts)
         succesFile = sendfile(sensname,valOut,ts,fileout)
         if testmode:
-            print(valOut,ts,sep="  ;   ")
+            print(ts,valOut,sep="  ;   ")
             sizeval = len(valOut)
-            print(f'N of values: {sizeval}\n')
+            print(f'N of params: {sizeval}\n')
         #if successDB:
         #    print("Data correctly sent to Influx\n")
     # may add a condition/signal to stop the script (not sure if needed)
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     shutdown = False
     testmode = True     #Flag for output of the functions
     testCO2 = False     #Flag to randomize CO2 status
-    outpath = "/path/DD-MM-YY.txt" #Define path and name of the txt file for output 
+    outpath = "test.txt" #Define path and name of the txt file for output 
     arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=3.)
     #time.sleep(5)
     fileout = open(outpath,"a")
