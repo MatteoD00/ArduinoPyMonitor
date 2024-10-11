@@ -26,10 +26,12 @@ def send2DB(sensors, values, ts):
 """
 
 # Write info on TXT file
-def sendfile(sensname, valOut, ts, fileout):
+def sendfile(sensname, valOut, ts, outpath):
     try:
         outtxt = f"Time: {ts}            {sensname[0]}: {valOut[0]}            {sensname[1]}: {valOut[1]}\n"
-        fileout.write(outtxt)
+        with open(outpath,'a') as fileout:
+            fileout.write(outtxt)
+        fileout.close()
     except:
         return False
     return True    
@@ -59,15 +61,15 @@ def readData(arduino,testmode):
             print(stringout)
     return sensname, valsens
 
-def mainLoop(arduino, testmode, fileout):
+def mainLoop(arduino, testmode, outpath):
     shutdown = False 
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
         sensname, valOut = readData(arduino,testmode)
-        ts = datetime.fromtimestamp(time.time())
-        ts = ts.time()
+        ts = datetime.now()
+        ts = ts.strftime("%H:%M:%S")
         #successDB = send2DB(valOut, ts)
-        successWrite = sendfile(sensname,valOut,ts,fileout)
+        successWrite = sendfile(sensname,valOut,ts,outpath)
         if not successWrite:
             print("! Problem while writing txt file !")
         if testmode:
@@ -83,15 +85,13 @@ if __name__ == "__main__":
     shutdown = False
     testmode = True     #Flag for output of the functions
     testCO2 = False     #Flag to randomize CO2 status
-    outpath = "test.txt" #Define path and name of the txt file for output 
+    outpath = "test.txt" #Define path and name of the txt file for output (e.g. f"/path/{datetime.date()}.txt")
     arduino = serial.Serial('/dev/ttyACM0', 9600, timeout=3.)
     #time.sleep(5)
-    fileout = open(outpath,"a")
     while not shutdown:
         try:
-            shutdown = mainLoop(arduino, testmode, fileout)
+            shutdown = mainLoop(arduino, testmode, outpath)
             #time.sleep(1.) #added to match arduino delay
         except:
             print("!! Something went wrong, quit python script !!")
             shutdown = True
-    fileout.close()
