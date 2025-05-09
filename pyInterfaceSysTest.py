@@ -95,3 +95,4 @@ if __name__ == "__main__":
         except:
             print("!! Something went wrong, quit python script !!")
             shutdown = True
+    print("Shutdown completed: end of serial communication")

@@ -5,7 +5,7 @@ void setup() {
 Serial.begin(9600); // Initialize serial communication
 }
 void loop() {
-delay(2000); // Delay for two seconds
+delay(500); // Delay for 0.5 seconds
 float humidity = dht.readHumidity(); // Read humidity value
 float temperature = dht.readTemperature(); // Read temperature value
 Serial.println("### Sending data to PC ###");
