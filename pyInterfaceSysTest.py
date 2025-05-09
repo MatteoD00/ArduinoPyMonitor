@@ -1,6 +1,7 @@
 #from connectArduino import *
 #from DB import *
 import sys
+import os
 import threading
 from datetime import datetime
 import requests
@@ -8,22 +9,9 @@ import serial
 import time
 import random
 
-"""
-#Write to database via HTTP post
-def send2DB(sensors, values, ts):
-        try:
-            #time.sleep(0.70)
-            post_params = ( ('db', 'test_PetalColdbox'), )
-            for i in range(len(sensors)):
-                data_sent = sensors[i]+' value='+str(format(values[i], '.2f'))+' '+str(ts)
-                print(data_sent)
-                response_db = requests.post('http://atlasmonitoring.desy.de:8086'+'/write', params=post_params, data=data_sent)
-                print(response_db)
-            return True
-        except:
-            print("Error while connecting to Grafana")
-            return False
-"""
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client import client
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Write info on TXT file
 def sendfile(sensname, valOut, ts, outpath):
@@ -61,14 +49,16 @@ def readData(arduino,testmode):
             print(stringout)
     return sensname, valsens
 
-def mainLoop(arduino, testmode, outpath):
+def mainLoop(arduino, testmode, outpath, writeDB, bucket, org, url):
     shutdown = False 
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
         sensname, valOut = readData(arduino,testmode)
         ts = datetime.now()
         ts = ts.strftime("%H:%M:%S")
-        #successDB = send2DB(valOut, ts)
+        if writeDB:
+            point = Point("climate_chamber").field("HUM", valOut[0]).field("TEMP", valOut[1]).tag("location", "climate_chamber").time(datetime.now())
+            write_api.write(bucket=bucket, org=org, record=point)
         successWrite = sendfile(sensname,valOut,ts,outpath)
         if not successWrite:
             print("! Problem while writing txt file !")
@@ -82,6 +72,14 @@ def mainLoop(arduino, testmode, outpath):
     return shutdown
 
 if __name__ == "__main__":
+    token = os.environ.get("INFLUXDB_TOKEN")
+    org = "test-org"
+    url = "http://localhost:8086"
+    bucket = "ArduinoClimateChamber"
+    write_client = InfluxDBClient(url=url, token=token, org=org)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+    
+    writeDB = True
     shutdown = False
     testmode = True     #Flag for output of the functions
     testCO2 = False     #Flag to randomize CO2 status
@@ -90,9 +88,10 @@ if __name__ == "__main__":
     #time.sleep(5)
     while not shutdown:
         try:
-            shutdown = mainLoop(arduino, testmode, outpath)
+            shutdown = mainLoop(arduino, testmode, outpath, writeDB, bucket, org, url)
             #time.sleep(1.) #added to match arduino delay
         except:
             print("!! Something went wrong, quit python script !!")
             shutdown = True
+    client.close()
     print("Shutdown completed: end of serial communication")
