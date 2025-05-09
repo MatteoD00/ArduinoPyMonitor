@@ -2,10 +2,10 @@
 #define DHTPIN 2 // Define the pin connected to the DHT11 sensor
 DHT11 dht(DHTPIN); // Create a DHT11 object and specify the pin
 void setup() {
-Serial.begin(9600); // Initialize serial communication
+Serial.begin(115200); // Initialize serial communication
 }
 void loop() {
-delay(500); // Delay for 0.5 seconds
+//delay(500); // Delay for 0.5 seconds
 float humidity = dht.readHumidity(); // Read humidity value
 float temperature = dht.readTemperature(); // Read temperature value
 Serial.println("### Sending data to PC ###");
