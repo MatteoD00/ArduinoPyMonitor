@@ -119,12 +119,17 @@ if __name__ == "__main__":
         try:
             shutdown, temp_last = mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB)
             #time.sleep(1.) #added to match arduino delay
-        except:
-            print("!! Something went wrong, try restablishing connection !!")
+        except KeyboardInterrupt:
+            print("Received shutdown signal from user, disabling serial monitor")
+            arduino.close()
+            shutdown = True
+        except Exception as e:
+            print("!! Something went wrong, establishing new connection !!")
             try:
                 arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=10.)
-                print("Connection restored --> Check Python script for instabilities")
+                print("Serial connection available --> Check Python script for instabilities")
             except:
                 print("Reconnection failed, start shutdown procedure")
+                arduino.close()
                 shutdown = True
     print("Shutdown completed: end of serial communication")
