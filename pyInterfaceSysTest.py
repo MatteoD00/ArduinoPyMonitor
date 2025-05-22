@@ -51,7 +51,7 @@ def readData(arduino, temp_sign, temp_last,testmode):
             if "Temp" in stringout:
                 temp = stringout.split()
                 temp_abs = float(temp[2])
-                if temp_abs == 0. and not abs(temp_last) == 0.:
+                if temp_abs == 0. and abs(temp_last) != 0.:
                     temp_sign = -1.*temp_sign
                 valsens.append(temp_abs*temp_sign)
                 sensname.append("Temperature (C)")
@@ -64,20 +64,20 @@ def readData(arduino, temp_sign, temp_last,testmode):
         stringout = arduino.readline().decode()
         if testmode:
             print(stringout)
-    return sensname, valsens
+    return sensname, valsens, temp_sign
 
 def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
     shutdown = False 
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
-        sensname, valOut = readData(arduino, temp_sign, temp_last, testmode)
+        sensname, valOut, sign_out = readData(arduino, temp_sign, temp_last, testmode)
         temp_last = valOut[1]
         dew_point = dewPoint(valOut[1],valOut[0])
         ts = datetime.now()
         ts = ts.strftime("%H:%M:%S")
         if writeDB:
-            token = "T1QLIsmyh4f8wTTyaJL85hVC07DOScCxu5BKFRh2DgEwojo6p29-msuCbUZbP7Qi6cLU4e1D7hLZ0gyfA7GuiQ=="
-            org = "FAST_Group"
+            token = "tnTHThgOTbJT_S84L5iU8htYGCSpNG4c997uxrwwkEcP1-BKgrqsfQ63_OecJWSSnL8K0rhVcYIVz_BbKVSFNg=="
+            org = "FASTgroup"
             url = "http://localhost:8086"
             bucket = "ArduinoClimateChamber"
             write_client = InfluxDBClient(url=url, token=token, org=org)
@@ -96,7 +96,7 @@ def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
             print(f'N of params: {sizeval}\n')
         print(ts,valOut,sep="\t")
     # may add a condition/signal to stop the script (not sure if needed)
-    return shutdown, temp_last
+    return shutdown, temp_last, sign_out
 
 if __name__ == "__main__":
     writeDB = True
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     
     while not shutdown:
         try:
-            shutdown, temp_last = mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB)
+            shutdown, temp_last, temp_sign = mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB)
             #time.sleep(1.) #added to match arduino delay
         except KeyboardInterrupt:
             print("Received shutdown signal from user, disabling serial monitor")
