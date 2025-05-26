@@ -74,7 +74,7 @@ def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
         temp_last = valOut[1]
         dew_point = dewPoint(valOut[1],valOut[0])
         ts = datetime.now()
-        ts = ts.strftime("%H:%M:%S")
+        #ts = ts.strftime("%H:%M:%S")
         if writeDB:
             token = "tnTHThgOTbJT_S84L5iU8htYGCSpNG4c997uxrwwkEcP1-BKgrqsfQ63_OecJWSSnL8K0rhVcYIVz_BbKVSFNg=="
             org = "FASTgroup"
