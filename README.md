@@ -5,6 +5,8 @@
 3. Run "pyInterfaceSysTest.py" in a terminal to read the output from Arduino and save it in a txt file  
 
 ## Notes:
-A. Python script must be running the entire time to collect and store data
-B. Check that the sensor inside the Arduino firmware is the correct model  
-C. To shutdown the Arduino board just unplug it from the power source  
+<ol type="A">
+  <li>Python script must be running the entire time to collect and store data</li>
+  <li>Check that the sensor inside the Arduino firmware is the correct model</li>
+  <li>To shutdown the Arduino board just unplug it from the power source</li>
+</ol>
