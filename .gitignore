@@ -1,2 +1,5 @@
 # Ignore any txt output
 *.txt
+
+# Ignore config file for InfluxDB
+config_influx.ini
