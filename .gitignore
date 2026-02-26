@@ -2,4 +2,4 @@
 *.txt
 
 # Ignore config file for InfluxDB
-confi_influx.ini
+config_influx.ini
