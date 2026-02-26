@@ -1,5 +1,16 @@
-# Ignore any txt output
-*.txt
+# Secret configuration files
+*config_influx.ini
 
-# Ignore config file for InfluxDB
-config_influx.ini
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+# Local data files (keeps your personal logs private)
+MonitorTXT/*.txt
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db

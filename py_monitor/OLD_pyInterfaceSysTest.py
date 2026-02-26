@@ -9,8 +9,7 @@ import serial
 import time
 import random
 import math
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+import configparser
 
 # Evaluate dew point
 def dewPoint(temp, hum):
@@ -66,7 +65,7 @@ def readData(arduino, temp_sign, temp_last,testmode):
             print(stringout)
     return sensname, valsens, temp_sign
 
-def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
+def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, config_influx):
     shutdown = False 
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
@@ -75,11 +74,11 @@ def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
         dew_point = dewPoint(valOut[1],valOut[0])
         ts = datetime.now()
         #ts = ts.strftime("%H:%M:%S")
-        if writeDB:
-            token = "tnTHThgOTbJT_S84L5iU8htYGCSpNG4c997uxrwwkEcP1-BKgrqsfQ63_OecJWSSnL8K0rhVcYIVz_BbKVSFNg=="
-            org = "FASTgroup"
-            url = "http://localhost:8086"
-            bucket = "ArduinoClimateChamber"
+        if config_influx is not None:
+            token = config_influx['INFLUXDB']['token']
+            org = config_influx['INFLUXDB']['org']
+            url = config_influx['INFLUXDB']['url']
+            bucket = config_influx['INFLUXDB']['bucket']
             write_client = InfluxDBClient(url=url, token=token, org=org)
             write_api = write_client.write_api(write_options=SYNCHRONOUS)
             point = Point("climate_chamber").field("HUM", valOut[0]).field("TEMP", valOut[1]).field("DEW", dew_point).tag("location", "climate_chamber").time(datetime.now(timezone.utc))
@@ -99,25 +98,43 @@ def mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB):
     return shutdown, temp_last, sign_out
 
 if __name__ == "__main__":
-    writeDB = True
-    shutdown = False
-    testmode = False     #Flag for output of the functions
-    testCO2 = False     #Flag to randomize CO2 status
-    newfile = True
-    temp_sign = 1.
-    temp_last = 0.
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    port = config['ARDUINO']['port']
+    baud = config.getint('ARDUINO', 'baudrate')
+    timeout = config.getfloat('ARDUINO','timeout')
+    writeDB = config.getboolean('MONITOR','writeDB')
+    testmode = config.getboolean('MONITOR','testmode')     #Flag for output of the functions
+    # testCO2 = False     #Flag to randomize CO2 status
+    newfile = config.getboolean('MONITOR','newfile')
+    temp_sign = config.getfloat('MONITOR','temp_sign')
     
-    os.makedirs(f"{os.getcwd()}/MonitorTXT/",exist_ok=True)
-    outpath = f"{os.getcwd()}/MonitorTXT/{datetime.date(datetime.now())}.txt" #Define path and name of the txt file for output (e.g. f"/path/{datetime.date()}.txt")
+    outdir = config["MONITOR"]['outdir']
+    if outdir is None:
+       outdir = os.path.join(os.getcwd(),"MonitorTXT")
+    os.makedirs(outdir,exist_ok=True)
+    outfile_name = config["MONITOR"]['outfile_name']
+    if outfile_name is None:
+        outfile_name = datetime.date(datetime.now())
+    outpath = f"{os.getcwd()}/MonitorTXT/{outfile_name}.txt" #Define path and name of the txt file for output (e.g. f"/path/{datetime.date()}.txt")
     if newfile:
         with open(outpath,'w') as fileout:
             fileout.write("Time\tHumidity (%)\tTemperature (C)\n")
         fileout.close()
-    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=10.)
+    arduino = serial.Serial(port, baud, timeout)
     
+    config_influx = None
+    if writeDB:
+        from influxdb_client import InfluxDBClient, Point
+        from influxdb_client.client.write_api import SYNCHRONOUS
+        config_influx = configparser.ConfigParser()
+        config_influx.read('config_influx.ini')
+
+    shutdown = False
+    temp_last = 0.
     while not shutdown:
         try:
-            shutdown, temp_last, temp_sign = mainLoop(arduino, temp_sign, temp_last, testmode, outpath, writeDB)
+            shutdown, temp_last, temp_sign = mainLoop(arduino, temp_sign, temp_last, testmode, outpath, config_influx)
             #time.sleep(1.) #added to match arduino delay
         except KeyboardInterrupt:
             print("Received shutdown signal from user, disabling serial monitor")
@@ -126,7 +143,7 @@ if __name__ == "__main__":
         except Exception as e:
             print("!! Something went wrong, establishing new connection !!")
             try:
-                arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=10.)
+                arduino = serial.Serial(port, baud, timeout)
                 print("Serial connection available --> Check Python script for instabilities")
             except:
                 print("Reconnection failed, start shutdown procedure")

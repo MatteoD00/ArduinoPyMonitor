@@ -1,0 +1,2 @@
+# Requested libraries for Arduino
+DHT11 (from ??)
