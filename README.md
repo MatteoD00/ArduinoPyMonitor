@@ -49,8 +49,11 @@ To start the monitoring session, run the logger:
 
 ## 📝 Technical Notes
 - **Dew Point:** The system calculates the dew point in real-time using the *Magnus-Tetens* approximation:
+
 $$\gamma(T, RH) = \ln\left(\frac{RH}{100}\right) + \frac{17.62T}{243.12+T}$$
+
 $$T_{dp} = \frac{243.12\gamma}{17.62-\gamma}$$
+
 - **Data Persistence:** The Python script must remain running to collect and store data. The Arduino does not store history internally.
 - **Shutdown:** To turn off the system, stop the Python script and unplug the Arduino from its power source.
 
