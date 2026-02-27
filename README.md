@@ -15,7 +15,7 @@ A lightweight system for real-time monitoring of temperature and humidity. This 
 
 ### 1. Hardware Preparation
 1. Open [**Arduino IDE 2**](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing/) and load `arduino_monitor/climatemonitor.ino`.
-2. Ensure the sensor model defined in the code matches your physical hardware (e.g., DHT11 or DHT22).
+2. Ensure the sensor model defined in the code matches your physical hardware (e.g., [DTH11](https://docs.arduino.cc/libraries/dht11/) or [DHT22](https://docs.arduino.cc/libraries/dht22/)).
 3. Connect your board and **Upload** the firmware.
 
 ### 2. Python Environment
