@@ -126,13 +126,13 @@ if __name__ == "__main__":
     temp_sign = config.getfloat('MONITOR', 'temp_sign')
     
     # 2. Setup File Output
-    outdir = config["MONITOR"].get('outdir') or os.path.join(os.getcwd(), "MonitorTXT")
+    outdir = str(config["MONITOR"].get('outdir')) or os.path.join(os.getcwd(), "MonitorTXT")
     os.makedirs(outdir, exist_ok=True)
     
     outfile_name = config["MONITOR"].get('outfile_name') or datetime.now().strftime("%Y-%m-%d")
     outpath = os.path.join(outdir, f"{outfile_name}.txt")
     
-    if newfile:
+    if newfile or not os.path.exists(outpath):
         with open(outpath, 'w') as fileout:
             fileout.write("Time\tHumidity (%)\tTemperature (C)\n")
 
