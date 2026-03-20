@@ -129,7 +129,7 @@ if __name__ == "__main__":
     outdir = str(config["MONITOR"].get('outdir')) or os.path.join(os.getcwd(), "MonitorTXT")
     os.makedirs(outdir, exist_ok=True)
     
-    outfile_name = config["MONITOR"].get('outfile_name') or datetime.now().strftime("%Y-%m-%d")
+    outfile_name = config["MONITOR"].get('outfile_name') or datetime.now().strftime("%Y%m%d_%H%M")
     outpath = os.path.join(outdir, f"{outfile_name}.txt")
     
     if newfile or not os.path.exists(outpath):
